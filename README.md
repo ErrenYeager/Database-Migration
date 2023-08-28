@@ -25,7 +25,7 @@ A `MigrationManager` class is also included to orchestrate and execute migration
 1. Clone the repository to your local machine:
 
    ```shell
-   git clone https://github.com/ErrenYeager/databasemigration.git
+   git clone https://github.com/ErrenYeager/Database-Migration.git
 
 ## Usage
 
