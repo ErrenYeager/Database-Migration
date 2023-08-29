@@ -43,7 +43,20 @@ class MySQLMigration(MigrationBase):
 
         return migrations_history
 
+    def create_index_if_not_exists(self):
+        # Define the SQL query
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS migrations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            codename VARCHAR(255),
+            execution_date DATETIME
+        )
+        """
+        # Execute the SQL query
+        self.mysql_cursor.execute(create_table_query)
+
     def apply_migration(self, sql_migration_files):
+        self.create_index_if_not_exists()
         self.backup_database()
         migrations_history = self.get_migrations_history()
         migration_name = ""

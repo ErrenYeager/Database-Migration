@@ -27,7 +27,7 @@ class ElasticsearchMigration(MigrationBase):
     def insert_state(self, migration_name):
         document_data = {
             "migration": migration_name,
-            "executed_at": datetime.now()
+            "execution_date": datetime.now()
         }
 
         # Index the document
