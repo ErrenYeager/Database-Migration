@@ -7,6 +7,10 @@ from base_migration import MigrationBase
 
 
 class MySQLMigration(MigrationBase):
+    cwd = os.path.abspath(__file__).split('/')  # path prefix
+    cwd = "/".join(cwd[:-1])
+    is_any_migration_executed = False
+
     def __init__(self, host, user, password, database):
         self.mysql_connection = mysql.connector.connect(
             host=host,
@@ -22,7 +26,7 @@ class MySQLMigration(MigrationBase):
         self.mysql_cursor.execute(insert_query, data_to_insert)
 
     def execute_migration(self, sql_file):
-        with open("mysql_migration_files/" + sql_file, "r") as file:
+        with open(MySQLMigration.cwd + "/migration_files/mysql_migration_files/" + sql_file, "r") as file:
             sql_statements = file.read()
 
         # Split the SQL statements into individual queries
@@ -32,6 +36,7 @@ class MySQLMigration(MigrationBase):
         for query in queries:
             if query.strip():  # Check if the query is not empty
                 self.mysql_cursor.execute(query)
+        self.is_any_migration_executed = True
 
     def get_migrations_history(self):
         migrations_history = []
@@ -46,7 +51,7 @@ class MySQLMigration(MigrationBase):
     def create_index_if_not_exists(self):
         # Define the SQL query
         create_table_query = """
-        CREATE TABLE IF NOT EXISTS migrations (
+        CREATE TABLE IF NOT EXISTS migration_states (
             id INT AUTO_INCREMENT PRIMARY KEY,
             codename VARCHAR(255),
             execution_date DATETIME
@@ -74,35 +79,36 @@ class MySQLMigration(MigrationBase):
             print(f"Error in migration: {migration_name}\n{str(ex)}\n")
 
     def backup_database(self):
-        # Get a list of all tables in the database
-        self.mysql_cursor.execute("SHOW TABLES")
-        tables = self.mysql_cursor.fetchall()
+        if self.is_any_migration_executed:
+            # Get a list of all tables in the database
+            self.mysql_cursor.execute("SHOW TABLES")
+            tables = self.mysql_cursor.fetchall()
 
-        new_directory_name = str(datetime.now())
+            new_directory_name = str(datetime.now())
 
-        # Specify the output folder path
-        output_folder_path = "backups/mysql_backup/"
-        os.makedirs(output_folder_path + new_directory_name)
-        output_folder_path = "backups/mysql_backup/" + new_directory_name + '/'
+            # Specify the output folder path
+            output_folder_path = "backups/mysql_backup/"
+            os.makedirs(output_folder_path + new_directory_name)
+            output_folder_path = "backups/mysql_backup/" + new_directory_name + '/'
 
-        # Iterate through each table and export data to separate JSON files
-        for table in tables:
-            table_name = table[0]
+            # Iterate through each table and export data to separate JSON files
+            for table in tables:
+                table_name = table[0]
 
-            # Retrieve data from the table
-            self.mysql_cursor.execute(f"SELECT * FROM {table_name}")
-            rows = self.mysql_cursor.fetchall()
+                # Retrieve data from the table
+                self.mysql_cursor.execute(f"SELECT * FROM {table_name}")
+                rows = self.mysql_cursor.fetchall()
 
-            output_file_path = f"{output_folder_path}{table_name}.sql"
+                output_file_path = f"{output_folder_path}{table_name}.sql"
 
-            # Generate SQL insert statements and write to the output file
-            with open(output_file_path, "w") as output_file:
-                for row in rows:
-                    values = ", ".join([f"'{value}'" if isinstance(value, str) else str(value) for value in row])
-                    insert_statement = f"INSERT INTO {table_name} VALUES ({values});\n"
-                    output_file.write(insert_statement)
+                # Generate SQL insert statements and write to the output file
+                with open(output_file_path, "w") as output_file:
+                    for row in rows:
+                        values = ", ".join([f"'{value}'" if isinstance(value, str) else str(value) for value in row])
+                        insert_statement = f"INSERT INTO {table_name} VALUES ({values});\n"
+                        output_file.write(insert_statement)
 
-            print(f"Data from table '{table_name}' exported to '{output_file_path}'.")
+                print(f"Data from table '{table_name}' exported to '{output_file_path}'.")
 
     def close_connection(self):
         self.mysql_connection.commit()
