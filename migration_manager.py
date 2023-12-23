@@ -6,23 +6,34 @@ import mysql_migration as mysql_migration
 
 
 class MigrationManager:
+    cwd = os.path.abspath(__file__).split('/')  # path prefix
+    cwd = "/".join(cwd[:-1])
+
     def __init__(self):
-        self.mysql = mysql_migration.MySQLMigration(host="localhost",
-                                                    user="root",
-                                                    password="my-secret-pw",
-                                                    database="migrations")
-        self.mongo = mongo_migration.MongoMigration("mongodb://localhost:27017/", "migration")
-        self.elastic = elastic_migration.ElasticsearchMigration('http://elastic:passw0rd@localhost:9200')
+        self.mysql = mysql_migration.MySQLMigration(host=os.environ['DB_HOST'],
+                                                    user=os.environ['DB_USER'],
+                                                    password=os.environ['DB_PASS'],
+                                                    database=os.environ['DB_NAME'])
+        self.mongo = mongo_migration.MongoMigration(
+            f"mongodb://{os.environ['MONGO_DB_USER']}:{os.environ['MONGO_DB_PASS']}@{os.environ['MONGO_DB_HOST']}:{os.environ['MONGO_DB_PORT']}",
+            os.environ['MONGO_DB_NAME'])
+
+        self.elastic = elastic_migration.ElasticsearchMigration(
+            f"http://{os.environ['ELASTICSEARCH_USERNAME']}:{os.environ['ELASTICSEARCH_PASSWORD']}@{os.environ['ELASTICSEARCH_HOST']}:{os.environ['ELASTICSEARCH_PORT_ONE']}")
 
     def get_migration_files(self):
-        sql_migrations = [f for f in os.listdir("migration_files/mysql_migration_files") if
-                          os.path.isfile(os.path.join("migration_files/mysql_migration_files", f))]
+        sql_migrations = [f for f in os.listdir(MigrationManager.cwd + "/migration_files/mysql_migration_files") if
+                          os.path.isfile(
+                              os.path.join(MigrationManager.cwd + "/migration_files/mysql_migration_files", f))]
 
-        mongo_migrations = [f for f in os.listdir("migration_files/mongo_migration_files") if
-                            os.path.isfile(os.path.join("migration_files/mongo_migration_files", f))]
+        mongo_migrations = [f for f in os.listdir(MigrationManager.cwd + "/migration_files/mongo_migration_files") if
+                            os.path.isfile(
+                                os.path.join(MigrationManager.cwd + "/migration_files/mongo_migration_files", f))]
 
-        elastic_migrations = [f for f in os.listdir("migration_files/elastic_migration_files") if
-                              os.path.isfile(os.path.join("migration_files/elastic_migration_files", f))]
+        elastic_migrations = [f for f in os.listdir(MigrationManager.cwd + "/migration_files/elastic_migration_files")
+                              if
+                              os.path.isfile(
+                                  os.path.join(MigrationManager.cwd + "/migration_files/elastic_migration_files", f))]
 
         return sql_migrations, mongo_migrations, elastic_migrations
 
