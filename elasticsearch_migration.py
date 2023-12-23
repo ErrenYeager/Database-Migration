@@ -108,7 +108,7 @@ class ElasticsearchMigration(MigrationBase):
 
     def apply_migration(self, migration_files):
         self.create_index_if_not_exists()
-        # self.backup_database()
+        self.backup_database()
         migrations_history = self.get_migrations_history()
         migration_name = ""
         try:
