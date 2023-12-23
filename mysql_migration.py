@@ -87,9 +87,9 @@ class MySQLMigration(MigrationBase):
             new_directory_name = str(datetime.now())
 
             # Specify the output folder path
-            output_folder_path = "backups/mysql_backup/"
+            output_folder_path = MySQLMigration.cwd + "backups/mysql_backup/"
             os.makedirs(output_folder_path + new_directory_name)
-            output_folder_path = "backups/mysql_backup/" + new_directory_name + '/'
+            output_folder_path = output_folder_path + new_directory_name + '/'
 
             # Iterate through each table and export data to separate JSON files
             for table in tables:

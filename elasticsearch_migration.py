@@ -75,7 +75,7 @@ class ElasticsearchMigration(MigrationBase):
 
             new_directory_name = str(datetime.now())
             # Specify the output folder path
-            output_folder_path = "backups/elastic_backup/"
+            output_folder_path = ElasticsearchMigration.cwd + "backups/elastic_backup/"
             os.makedirs(output_folder_path + new_directory_name)
             output_folder_path = output_folder_path + new_directory_name + '/'
 

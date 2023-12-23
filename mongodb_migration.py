@@ -63,7 +63,7 @@ class MongoMigration(MigrationBase):
             new_directory_name = str(datetime.now())
 
             # Specify the output folder path
-            output_folder_path = "backups/mongo_backup/"
+            output_folder_path = MongoMigration.cwd + "backups/mongo_backup/"
             os.makedirs(output_folder_path + new_directory_name)
             output_folder_path = output_folder_path + new_directory_name + '/'
 
