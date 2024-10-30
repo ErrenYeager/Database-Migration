@@ -15,7 +15,7 @@ class MigrationBase(ABC):
         pass
 
     @abstractmethod
-    def backup_database(self):
+    def backup_database(self, selected_tables=[]):
         pass
 
     @abstractmethod

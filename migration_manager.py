@@ -1,11 +1,13 @@
 import os
 
+from central_logger import get_logger
 import elasticsearch_migration as elastic_migration
 import mongodb_migration as mongo_migration
 import mysql_migration as mysql_migration
 
 
 class MigrationManager:
+    logger = get_logger(__name__)
     cwd = os.path.abspath(__file__).split('/')  # path prefix
     cwd = "/".join(cwd[:-1])
 
@@ -14,6 +16,7 @@ class MigrationManager:
                                                     user=os.environ['DB_USER'],
                                                     password=os.environ['DB_PASS'],
                                                     database=os.environ['DB_NAME'])
+
         self.mongo = mongo_migration.MongoMigration(
             f"mongodb://{os.environ['MONGO_DB_USER']}:{os.environ['MONGO_DB_PASS']}@{os.environ['MONGO_DB_HOST']}:{os.environ['MONGO_DB_PORT']}",
             os.environ['MONGO_DB_NAME'])
@@ -50,6 +53,8 @@ class MigrationManager:
 
 if __name__ == '__main__':
     manager = MigrationManager()
+    manager.logger.info("========= Migration module initialized and started! =========")
     sql_files, mongo_files, elastic_files = manager.get_migration_files()
     manager.execute(sql_files, mongo_files, elastic_files)
     manager.close_all_connections()
+    manager.logger.info("========= Migration module done! =========")
